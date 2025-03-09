@@ -1,1 +1,1 @@
-HarukiSakurai105.github.io
+https://harukisakurai105.github.io/quanlysach/
