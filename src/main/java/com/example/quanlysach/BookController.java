@@ -103,4 +103,15 @@ public class BookController {
         }
         return "redirect:/books";
     }
+    @GetMapping("/detail/{id}")
+    public String getBookDetail(@PathVariable Long id, Model model) {
+        Optional<Book> book = bookService.getBookById(id);
+        if (book.isPresent()) {
+            model.addAttribute("book", book.get());
+            return "book-detail"; // Cần có file book-detail.html
+        } else {
+            log.warn("Không tìm thấy sách có ID: {}", id);
+            return "redirect:/books";
+        }
+    }
 }
