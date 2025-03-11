@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Xác nhận Xóa Sách</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-4">
+  <h2 class="text-center text-danger">🗑 Xác nhận Xóa</h2>
+  <div class="alert alert-warning text-center">
+    <p>Bạn có chắc chắn muốn xóa sách <strong th:text="${book.title}"></strong> không?</p>
+    <p>Hành động này không thể hoàn tác!</p>
+  </div>
+  <div class="card p-4 shadow-lg">
+    <div class="text-center">
+      <img th:src="${book.imageUrl}" class="img-thumbnail" style="max-width: 200px;">
+    </div>
+    <div class="mt-3">
+      <p><strong>📌 Tiêu đề:</strong> <span th:text="${book.title}"></span></p>
+      <p><strong>✍ Tác giả:</strong> <span th:text="${book.author}"></span></p>
+      <p><strong>📅 Ngày xuất bản:</strong> <span th:text="${book.publishedDate}"></span></p>
+      <p><strong>📖 Mô tả:</strong></p>
+      <p th:text="${book.description}"></p>
+    </div>
+  </div>
+  <form th:action="@{/books/delete}" method="post" class="mt-3 text-center">
+    <input type="hidden" name="id" th:value="${book.id}">
+    <button type="submit" class="btn btn-danger">🗑 Xóa</button>
+    <a href="/books" class="btn btn-secondary">⬅ Hủy</a>
+  </form>
+</div>
+</body>
+</html>

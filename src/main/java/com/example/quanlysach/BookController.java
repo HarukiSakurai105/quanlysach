@@ -43,11 +43,22 @@ public class BookController {
         Optional<Book> book = bookService.getBookById(id);
         if (book.isPresent()) {
             model.addAttribute("book", book.get());
-            return "book-form";
+            return "book-edit"; // Sử dụng trang chỉnh sửa riêng
         } else {
             log.error("Không tìm thấy sách có ID: {}", id);
             return "redirect:/books";
         }
+    }
+
+    @PostMapping("/update")
+    public String updateBook(@Valid @ModelAttribute("book") Book book, BindingResult result) {
+        if (result.hasErrors()) {
+            log.warn("Lỗi dữ liệu khi cập nhật sách: {}", result.getAllErrors());
+            return "book-edit";
+        }
+        bookService.save(book);
+        log.info("Cập nhật sách: {} (ID: {})", book.getTitle(), book.getId());
+        return "redirect:/books";
     }
 
     @PostMapping("/save")
@@ -94,15 +105,27 @@ public class BookController {
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteBook(@PathVariable Long id) {
-        if (bookService.getBookById(id).isPresent()) {
-            bookService.deleteById(id);
+    public String confirmDelete(@PathVariable Long id, Model model) {
+        Optional<Book> book = bookService.getBookById(id);
+        if (book.isPresent()) {
+            model.addAttribute("book", book.get());
+            return "book-delete"; // Trang xác nhận xóa
+        } else {
+            log.warn("Không tìm thấy sách để xóa, ID: {}", id);
+            return "redirect:/books";
+        }
+    }
+
+    @PostMapping("/delete")
+    public String deleteBook(@RequestParam Long id) {
+        if (bookService.deleteById(id)) {
             log.info("Đã xóa sách có ID: {}", id);
         } else {
             log.warn("Không thể xóa sách. ID không tồn tại: {}", id);
         }
         return "redirect:/books";
     }
+
     @GetMapping("/detail/{id}")
     public String getBookDetail(@PathVariable Long id, Model model) {
         Optional<Book> book = bookService.getBookById(id);

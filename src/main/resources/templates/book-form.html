@@ -2,9 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>📚 Quản Lý Sách</title>
+    <title>📖 Thêm Sách</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
     <style>
         /* Navbar */
         .navbar {
@@ -33,151 +32,64 @@
             color: white;
         }
 
-        /* Giữ khoảng cách với nội dung khi navbar fixed */
         body {
             padding-top: 70px;
         }
-        /* Form */
         .card {
             max-width: 600px;
             margin: auto;
         }
     </style>
-
-    <script>
-        function validateImage(input) {
-            const file = input.files[0];
-            if (file) {
-                const validTypes = ['image/jpeg', 'image/png'];
-                const maxSize = 20 * 1024 * 1024; // 20MB
-
-                if (!validTypes.includes(file.type)) {
-                    alert('⚠ Chỉ chấp nhận tệp JPG hoặc PNG!');
-                    input.value = '';
-                    return;
-                }
-
-                if (file.size > maxSize) {
-                    alert('⚠ Kích thước ảnh không được vượt quá 20MB!');
-                    input.value = '';
-                    return;
-                }
-
-                // Hiển thị ảnh xem trước
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    document.getElementById('previewImage').src = e.target.result;
-                    document.getElementById('previewContainer').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-    </script>
 </head>
 <body>
 
-<!-- HEADER -->
 <nav class="navbar navbar-expand-lg fixed-top shadow">
     <div class="container">
         <a class="navbar-brand fw-bold" href="/books">📚 Quản Lý Sách</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/books">📖 Danh Sách Sách</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="/books/add">➕ Thêm Sách</a>
-                </li>
-            </ul>
-        </div>
     </div>
 </nav>
 
-<!-- FORM THÊM SÁCH -->
 <div class="container mt-4">
     <h2 class="text-center">📖 Thêm Sách</h2>
-
     <form th:action="@{/books/save}" th:object="${book}" method="post" enctype="multipart/form-data" class="card p-4 shadow-lg needs-validation" novalidate>
-        <!-- Hiển thị lỗi nếu có -->
-        <div th:if="${#fields.hasErrors()}" class="alert alert-danger">
-            <ul>
-                <li th:each="error : ${#fields.errors('book')}" th:text="${error}"></li>
-            </ul>
-        </div>
-
         <input type="hidden" th:field="*{id}">
 
         <div class="mb-3">
-            <label for="title" class="form-label">📌 Tiêu đề sách:</label>
-            <input type="text" id="title" th:field="*{title}" class="form-control" placeholder="Nhập tiêu đề sách" required>
-            <div class="invalid-feedback">Vui lòng nhập tiêu đề sách.</div>
+            <label class="form-label">📌 Tiêu đề sách:</label>
+            <input type="text" class="form-control" th:field="*{title}" required>
         </div>
 
         <div class="mb-3">
-            <label for="author" class="form-label">✍ Tác giả:</label>
-            <input type="text" id="author" th:field="*{author}" class="form-control" placeholder="Nhập tên tác giả" required>
-            <div class="invalid-feedback">Vui lòng nhập tên tác giả.</div>
+            <label class="form-label">✍ Tác giả:</label>
+            <input type="text" class="form-control" th:field="*{author}" required>
         </div>
 
         <div class="mb-3">
-            <label for="publishedDate" class="form-label">📅 Ngày xuất bản:</label>
-            <input type="date" id="publishedDate" th:field="*{publishedDate}" class="form-control" required>
-            <div class="invalid-feedback">Vui lòng chọn ngày xuất bản.</div>
+            <label class="form-label">📅 Ngày xuất bản:</label>
+            <input type="date" class="form-control" th:field="*{publishedDate}" required>
         </div>
 
         <div class="mb-3">
-            <label for="description" class="form-label">📖 Mô tả sách:</label>
-            <textarea id="description" th:field="*{description}" class="form-control" rows="3" placeholder="Nhập mô tả sách" required></textarea>
-            <div class="invalid-feedback">Vui lòng nhập mô tả sách.</div>
+            <label class="form-label">📖 Mô tả sách:</label>
+            <textarea class="form-control" th:field="*{description}" rows="3" required></textarea>
         </div>
 
-        <!-- THÊM ẢNH -->
         <div class="mb-3">
-            <label for="image" class="form-label">🖼 Chọn ảnh (Tối đa 20MB, có thể bỏ trống):</label>
-            <input type="file" id="image" name="image" class="form-control"
-                   accept="image/jpeg, image/png" onchange="validateImage(this)">
-            <div class="invalid-feedback">Vui lòng chọn ảnh hợp lệ (JPG hoặc PNG).</div>
+            <label class="form-label">🖼 Ảnh Bìa (Tối đa 20MB, có thể bỏ trống):</label>
+            <input type="file" class="form-control" name="image" accept="image/jpeg, image/png">
         </div>
 
-        <!-- Ảnh xem trước -->
-        <div id="previewContainer" class="mb-3 text-center" style="display: none;">
-            <p>🖼 Ảnh xem trước:</p>
-            <img id="previewImage" class="img-thumbnail mt-2" style="max-width: 200px;">
-        </div>
-
-        <!-- Hiển thị ảnh cũ nếu có -->
         <div th:if="${book.imageUrl}" class="mb-3 text-center">
             <p>📷 Ảnh hiện tại:</p>
             <img th:src="${book.imageUrl}" class="img-thumbnail mt-2" style="max-width: 200px;">
-            <input type="hidden" th:field="*{imageUrl}"> <!-- Giữ ảnh cũ nếu không tải ảnh mới -->
+            <input type="hidden" th:field="*{imageUrl}">
         </div>
 
         <div class="text-center">
-            <button type="submit" class="btn btn-primary">💾 Lưu sách</button>
-            <a href="/books" class="btn btn-secondary">↩ Quay lại danh sách</a>
+            <button type="submit" class="btn btn-primary">💾 Lưu</button>
+            <a href="/books" class="btn btn-secondary">↩ Quay lại</a>
         </div>
     </form>
 </div>
-
-<script>
-    // Kích hoạt kiểm tra validation của Bootstrap
-    (function () {
-        'use strict';
-        let forms = document.querySelectorAll('.needs-validation');
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    })();
-</script>
-
 </body>
 </html>
