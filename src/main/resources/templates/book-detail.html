@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chi tiết Sách</title>
+  <title>📖 Chi tiết Sách</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -32,7 +32,7 @@
       text-align: center;
     }
     .book-img {
-      width: 200px; /* Ảnh nhỏ nhưng rõ nét */
+      width: 250px;
       height: auto;
       border-radius: 10px;
       box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
@@ -86,8 +86,15 @@
   <div class="book-detail-card text-center">
     <!-- Ảnh sách -->
     <div class="book-img-container">
-      <img th:src="@{${book.imageUrl}}" alt="Ảnh sách" class="book-img">
+      <th:block th:if="${book.imageUrl}">
+        <img th:src="@{${book.imageUrl}}" alt="Ảnh sách" class="book-img">
+      </th:block>
+      <th:block th:unless="${book.imageUrl}">
+        <img src="https://via.placeholder.com/250" alt="Ảnh mặc định" class="book-img">
+        <p class="text-muted mt-2">📷 Không có ảnh</p>
+      </th:block>
     </div>
+
     <!-- Thông tin sách -->
     <div class="mt-3 book-detail">
       <h2 class="book-title" th:text="${book.title}"></h2>
@@ -100,7 +107,7 @@
       <div class="mt-3">
         <a href="/books" class="btn btn-secondary btn-custom">⬅ Quay lại</a>
         <a th:href="@{/books/edit/{id}(id=${book.id})}" class="btn btn-warning btn-custom">✏ Chỉnh sửa</a>
-        <a th:href="@{/books/delete/{id}(id=${book.id})}" class="btn btn-danger btn-custom">🗑 Xóa</a>
+        <a th:href="@{/books/confirm-delete/{id}(id=${book.id})}" class="btn btn-danger btn-custom">🗑 Xóa</a>
       </div>
     </div>
   </div>

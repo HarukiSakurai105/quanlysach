@@ -18,20 +18,8 @@
         .navbar-toggler {
             border: none;
         }
-        .btn-custom {
-            background-color: #E0E0E0;
-            color: #000000;
-            border: 2px solid #000000;
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: 0.3s;
-        }
-        .btn-custom:hover {
-            background-color: #007bff;
-            color: white;
-        }
 
+        /* Form */
         body {
             padding-top: 70px;
         }
@@ -43,53 +31,176 @@
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg fixed-top shadow">
     <div class="container">
         <a class="navbar-brand fw-bold" href="/books">📚 Quản Lý Sách</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/books">📖 Danh Sách Sách</a>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 
+<!-- FORM -->
 <div class="container mt-4">
     <h2 class="text-center">📖 Thêm Sách</h2>
     <form th:action="@{/books/save}" th:object="${book}" method="post" enctype="multipart/form-data" class="card p-4 shadow-lg needs-validation" novalidate>
         <input type="hidden" th:field="*{id}">
 
+        <!-- Tiêu đề sách -->
         <div class="mb-3">
             <label class="form-label">📌 Tiêu đề sách:</label>
-            <input type="text" class="form-control" th:field="*{title}" required>
+            <input type="text" class="form-control" id="title" name="title" th:field="*{title}" required>
+            <div class="invalid-feedback" id="title-error"></div>
         </div>
 
+        <!-- Tác giả -->
         <div class="mb-3">
             <label class="form-label">✍ Tác giả:</label>
-            <input type="text" class="form-control" th:field="*{author}" required>
+            <input type="text" class="form-control" id="author" name="author" th:field="*{author}" required>
+            <div class="invalid-feedback" id="author-error"></div>
         </div>
 
+        <!-- Ngày xuất bản -->
         <div class="mb-3">
             <label class="form-label">📅 Ngày xuất bản:</label>
-            <input type="date" class="form-control" th:field="*{publishedDate}" required>
+            <input type="date" class="form-control" id="publishedDate" name="publishedDate" th:field="*{publishedDate}" required>
+            <div class="invalid-feedback" id="publishedDate-error"></div>
         </div>
 
+        <!-- Mô tả sách -->
         <div class="mb-3">
             <label class="form-label">📖 Mô tả sách:</label>
-            <textarea class="form-control" th:field="*{description}" rows="3" required></textarea>
+            <textarea class="form-control" id="description" name="description" th:field="*{description}" rows="3" required></textarea>
+            <div class="invalid-feedback" id="description-error"></div>
         </div>
 
+        <!-- Ảnh bìa -->
         <div class="mb-3">
-            <label class="form-label">🖼 Ảnh Bìa (Tối đa 20MB, có thể bỏ trống):</label>
-            <input type="file" class="form-control" name="image" accept="image/jpeg, image/png">
+            <label class="form-label">🖼 Ảnh Bìa (Tối đa 20MB):</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/jpeg, image/png" required>
+            <div class="invalid-feedback" id="image-error"></div>
         </div>
 
+        <!-- Hiển thị ảnh cũ (nếu có) -->
         <div th:if="${book.imageUrl}" class="mb-3 text-center">
             <p>📷 Ảnh hiện tại:</p>
             <img th:src="${book.imageUrl}" class="img-thumbnail mt-2" style="max-width: 200px;">
             <input type="hidden" th:field="*{imageUrl}">
         </div>
 
+        <!-- Preview Image -->
+        <div id="image-preview" class="mb-3 text-center" style="display: none;">
+            <p>📷 Ảnh Bìa:</p>
+            <img id="preview-img" class="img-thumbnail mt-2" style="max-width: 200px;">
+        </div>
+
+        <!-- Nút Submit -->
         <div class="text-center">
             <button type="submit" class="btn btn-primary">💾 Lưu</button>
             <a href="/books" class="btn btn-secondary">↩ Quay lại</a>
         </div>
     </form>
 </div>
+
+<!-- JavaScript kiểm tra dữ liệu -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector(".needs-validation");
+
+        form.addEventListener("submit", function (event) {
+            let isValid = true;
+
+            // Danh sách trường cần kiểm tra
+            const fields = [
+                { id: "title", message: "Vui lòng nhập tiêu đề sách." },
+                { id: "author", message: "Vui lòng nhập tên tác giả." },
+                { id: "publishedDate", message: "Vui lòng chọn ngày xuất bản." },
+                { id: "description", message: "Vui lòng nhập mô tả sách." }
+            ];
+
+            fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                const errorDiv = document.getElementById(field.id + "-error");
+
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add("is-invalid");
+                    input.classList.remove("is-valid");
+                    errorDiv.textContent = field.message;
+                } else {
+                    input.classList.remove("is-invalid");
+                    input.classList.add("is-valid");
+                    errorDiv.textContent = "";
+                }
+            });
+
+            // Kiểm tra ảnh có được chọn không
+            const imageInput = document.getElementById("image");
+            const imageError = document.getElementById("image-error");
+
+            if (!imageInput.files.length) {
+                isValid = false;
+                imageInput.classList.add("is-invalid");
+                imageInput.classList.remove("is-valid");
+                imageError.textContent = "Vui lòng chọn ảnh bìa sách.";
+            } else {
+                imageInput.classList.remove("is-invalid");
+                imageInput.classList.add("is-valid");
+                imageError.textContent = "";
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
+
+        // Cập nhật viền xanh khi nhập dữ liệu
+        document.querySelectorAll("input, textarea").forEach(input => {
+            input.addEventListener("input", function () {
+                if (input.value.trim()) {
+                    input.classList.add("is-valid");
+                    input.classList.remove("is-invalid");
+                    document.getElementById(input.id + "-error").textContent = "";
+                } else {
+                    input.classList.add("is-invalid");
+                    input.classList.remove("is-valid");
+                }
+            });
+        });
+
+        // Cập nhật viền xanh khi chọn ảnh
+        document.getElementById("image").addEventListener("change", function () {
+            const preview = document.getElementById("image-preview");
+            const previewImg = document.getElementById("preview-img");
+
+            if (this.files.length) {
+                preview.style.display = "block";
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                };
+                reader.readAsDataURL(this.files[0]);
+
+                this.classList.add("is-valid");
+                this.classList.remove("is-invalid");
+                document.getElementById("image-error").textContent = "";
+            } else {
+                preview.style.display = "none";
+                this.classList.add("is-invalid");
+                this.classList.remove("is-valid");
+            }
+        });
+    });
+</script>
+
 </body>
 </html>

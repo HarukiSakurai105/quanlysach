@@ -32,38 +32,22 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    // Hiển thị danh sách sách
+    @GetMapping("")
+    public String listBooks(Model model) {
+        model.addAttribute("books", bookService.getAllBooks());
+        return "book-list";
+    }
+
+    // Hiển thị form thêm sách
     @GetMapping("/form")
     public String showForm(Model model) {
         model.addAttribute("book", new Book());
         return "book-form";
     }
-
-    @GetMapping("/edit/{id}")
-    public String editBook(@PathVariable Long id, Model model) {
-        Optional<Book> book = bookService.getBookById(id);
-        if (book.isPresent()) {
-            model.addAttribute("book", book.get());
-            return "book-edit"; // Sử dụng trang chỉnh sửa riêng
-        } else {
-            log.error("Không tìm thấy sách có ID: {}", id);
-            return "redirect:/books";
-        }
-    }
-
-    @PostMapping("/update")
-    public String updateBook(@Valid @ModelAttribute("book") Book book, BindingResult result) {
-        if (result.hasErrors()) {
-            log.warn("Lỗi dữ liệu khi cập nhật sách: {}", result.getAllErrors());
-            return "book-edit";
-        }
-        bookService.save(book);
-        log.info("Cập nhật sách: {} (ID: {})", book.getTitle(), book.getId());
-        return "redirect:/books";
-    }
-
     @PostMapping("/save")
     public String saveBook(@Valid @ModelAttribute("book") Book book,
-                           @RequestParam("image") MultipartFile file,
+                           @RequestParam(value = "image", required = false) MultipartFile file,
                            BindingResult result) {
         if (result.hasErrors()) {
             log.warn("Dữ liệu nhập không hợp lệ: {}", result.getAllErrors());
@@ -71,9 +55,8 @@ public class BookController {
         }
 
         try {
-            if (!file.isEmpty()) {
-                String fileName = file.getOriginalFilename();
-                assert fileName != null;
+            if (file != null && !file.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
                 String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
 
                 if (!ALLOWED_IMAGE_TYPES.contains(fileExtension)) {
@@ -81,11 +64,101 @@ public class BookController {
                     return "book-form";
                 }
 
-                Files.createDirectories(Paths.get(UPLOAD_DIR)); // Đảm bảo thư mục tồn tại
+                // Lưu file ảnh
+                Files.createDirectories(Paths.get(UPLOAD_DIR));
                 Path filePath = Paths.get(UPLOAD_DIR + fileName);
                 Files.write(filePath, file.getBytes());
                 book.setImageUrl("/uploads/" + fileName);
-            } else if (book.getId() != null) {
+            }
+        } catch (IOException e) {
+            log.error("Lỗi khi lưu ảnh: ", e);
+        }
+
+        // Lưu sách vào database
+        bookService.save(book);
+        log.info("Đã lưu sách: {} (ID: {})", book.getTitle(), book.getId());
+        return "redirect:/books";
+    }
+    // Hiển thị form chỉnh sửa sách
+    @GetMapping("/edit/{id}")
+    public String editBook(@PathVariable Long id, Model model) {
+        Optional<Book> book = bookService.getBookById(id);
+        if (book.isPresent()) {
+            model.addAttribute("book", book.get());
+            return "book-edit";
+        } else {
+            log.error("Không tìm thấy sách có ID: {}", id);
+            return "redirect:/books";
+        }
+    }
+
+    // Hiển thị trang xác nhận xóa
+    @GetMapping("/confirm-delete/{id}")
+    public String confirmDelete(@PathVariable Long id, Model model) {
+        Optional<Book> book = bookService.getBookById(id);
+        if (book.isPresent()) {
+            model.addAttribute("book", book.get());
+            return "book-delete";
+        } else {
+            log.warn("Không tìm thấy sách để xóa, ID: {}", id);
+            return "redirect:/books";
+        }
+    }
+
+    // Xóa sách (Nhận ID từ form)
+    @PostMapping("/delete")
+    public String deleteBook(@RequestParam Long id) {
+        Optional<Book> book = bookService.getBookById(id);
+        if (book.isPresent()) {
+            bookService.deleteById(id);
+            log.info("Đã xóa sách có ID: {}", id);
+        } else {
+            log.warn("Không thể xóa sách. ID không tồn tại: {}", id);
+        }
+        return "redirect:/books";
+    }
+
+    // Hiển thị chi tiết sách
+    @GetMapping("/detail/{id}")
+    public String getBookDetail(@PathVariable Long id, Model model) {
+        Optional<Book> book = bookService.getBookById(id);
+        if (book.isPresent()) {
+            model.addAttribute("book", book.get());
+            return "book-detail";
+        } else {
+            log.warn("Không tìm thấy sách có ID: {}", id);
+            return "redirect:/books";
+        }
+    }
+
+    // Cập nhật thông tin sách
+    @PostMapping("/update")
+    public String updateBook(@Valid @ModelAttribute("book") Book book,
+                             @RequestParam(value = "image", required = false) MultipartFile file,
+                             BindingResult result) {
+        if (result.hasErrors()) {
+            log.warn("Lỗi dữ liệu khi cập nhật sách: {}", result.getAllErrors());
+            return "book-edit";
+        }
+
+        try {
+            if (file != null && !file.isEmpty()) {
+                // Kiểm tra định dạng file
+                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+
+                if (!ALLOWED_IMAGE_TYPES.contains(fileExtension)) {
+                    log.warn("Định dạng file không hợp lệ: {}", fileName);
+                    return "book-edit";
+                }
+
+                // Lưu file ảnh
+                Files.createDirectories(Paths.get(UPLOAD_DIR));
+                Path filePath = Paths.get(UPLOAD_DIR + fileName);
+                Files.write(filePath, file.getBytes());
+                book.setImageUrl("/uploads/" + fileName);
+            } else {
+                // Giữ ảnh cũ nếu không chọn ảnh mới
                 bookService.getBookById(book.getId()).ifPresent(existingBook ->
                         book.setImageUrl(existingBook.getImageUrl()));
             }
@@ -94,47 +167,7 @@ public class BookController {
         }
 
         bookService.save(book);
-        log.info("Đã lưu sách: {} (ID: {})", book.getTitle(), book.getId());
+        log.info("Cập nhật sách: {} (ID: {})", book.getTitle(), book.getId());
         return "redirect:/books";
-    }
-
-    @GetMapping
-    public String listBooks(Model model) {
-        model.addAttribute("books", bookService.getAllBooks());
-        return "book-list";
-    }
-
-    @GetMapping("/delete/{id}")
-    public String confirmDelete(@PathVariable Long id, Model model) {
-        Optional<Book> book = bookService.getBookById(id);
-        if (book.isPresent()) {
-            model.addAttribute("book", book.get());
-            return "book-delete"; // Trang xác nhận xóa
-        } else {
-            log.warn("Không tìm thấy sách để xóa, ID: {}", id);
-            return "redirect:/books";
-        }
-    }
-
-    @PostMapping("/delete")
-    public String deleteBook(@RequestParam Long id) {
-        if (bookService.deleteById(id)) {
-            log.info("Đã xóa sách có ID: {}", id);
-        } else {
-            log.warn("Không thể xóa sách. ID không tồn tại: {}", id);
-        }
-        return "redirect:/books";
-    }
-
-    @GetMapping("/detail/{id}")
-    public String getBookDetail(@PathVariable Long id, Model model) {
-        Optional<Book> book = bookService.getBookById(id);
-        if (book.isPresent()) {
-            model.addAttribute("book", book.get());
-            return "book-detail"; // Cần có file book-detail.html
-        } else {
-            log.warn("Không tìm thấy sách có ID: {}", id);
-            return "redirect:/books";
-        }
     }
 }

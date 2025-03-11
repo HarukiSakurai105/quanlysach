@@ -17,6 +17,9 @@
         .nav-link:hover {
             text-decoration: underline;
         }
+        .navbar-toggler {
+            border: none;
+        }
 
         /* Giao diện thanh tìm kiếm */
         .search-container {
@@ -283,7 +286,7 @@
                         </div>
                         <div class="modal-footer">
                             <a th:href="@{/books/edit/{id}(id=${book.id})}" class="btn btn-warning">✏ Sửa</a>
-                            <a th:href="@{/books/delete/{id}(id=${book.id})}" class="btn btn-danger">🗑 Xóa</a>
+                            <a th:href="@{/books/confirm-delete/{id}(id=${book.id})}" class="btn btn-danger">🗑 Xóa</a>
                             <a th:href="@{/books/detail/{id}(id=${book.id})}" class="btn btn-info">📚Đọc thêm</a>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                         </div>
