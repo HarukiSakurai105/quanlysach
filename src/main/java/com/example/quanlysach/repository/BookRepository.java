@@ -9,7 +9,4 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<Book, Long> {
     // Tìm kiếm sách theo tiêu đề (không phân biệt chữ hoa/chữ thường)
     List<Book> findByTitleContainingIgnoreCase(String title);
-
-    // Tìm kiếm sách theo tác giả (không phân biệt chữ hoa/chữ thường)
-    List<Book> findByAuthorContainingIgnoreCase(String author);
 }

@@ -111,105 +111,6 @@
         }
     </style>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let searchInput = document.getElementById("searchInput");
-            let searchSuggestions = document.getElementById("searchSuggestions");
-
-            // Xử lý khi nhập vào ô tìm kiếm
-            searchInput.addEventListener("keyup", function (event) {
-                let input = searchInput.value.toLowerCase();
-                let books = document.getElementsByClassName("book-card");
-                searchSuggestions.innerHTML = "";
-
-                if (input === "") {
-                    searchSuggestions.classList.remove("show");
-                    return;
-                }
-
-                let suggestions = [];
-                for (let book of books) {
-                    let title = book.querySelector("h5").innerText.toLowerCase();
-                    if (title.includes(input)) {
-                        let suggestionItem = document.createElement("li");
-                        suggestionItem.classList.add("list-group-item", "list-group-item-action");
-                        suggestionItem.innerText = book.querySelector("h5").innerText;
-                        suggestionItem.onclick = function () {
-                            searchInput.value = suggestionItem.innerText;
-                            searchSuggestions.classList.remove("show");
-                            searchBooks();
-                        };
-                        suggestions.push(suggestionItem);
-                    }
-                }
-
-                if (suggestions.length > 0) {
-                    suggestions.forEach(item => searchSuggestions.appendChild(item));
-                    searchSuggestions.classList.add("show");
-                } else {
-                    searchSuggestions.classList.remove("show");
-                }
-
-                // Nhấn Enter để tìm kiếm
-                if (event.key === "Enter") {
-                    searchBooks();
-                    searchSuggestions.classList.remove("show");
-                }
-            });
-
-            document.addEventListener("click", function (e) {
-                if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                    searchSuggestions.classList.remove("show");
-                }
-            });
-
-            // Xử lý lọc tác giả
-            let authorFilter = document.getElementById("authorFilter");
-            authorFilter.addEventListener("change", function () {
-                searchBooks();
-            });
-
-            // Xử lý sắp xếp sách
-            let sortFilter = document.getElementById("sortFilter");
-            sortFilter.addEventListener("change", function () {
-                sortBooks();
-            });
-        });
-
-        // Tìm kiếm sách
-        function searchBooks() {
-            let input = document.getElementById("searchInput").value.toLowerCase();
-            let author = document.getElementById("authorFilter").value;
-            let books = document.getElementsByClassName("book-card");
-
-            for (let book of books) {
-                let title = book.querySelector("h5").innerText.toLowerCase();
-                let bookAuthor = book.querySelector(".book-author").innerText.toLowerCase();
-                let isVisible = title.includes(input) && (author === "all" || bookAuthor.includes(author));
-                book.parentElement.style.display = isVisible ? "block" : "none";
-            }
-        }
-
-        // Sắp xếp sách theo tiêu đề
-        function sortBooks() {
-            let booksContainer = document.getElementById("bookList");
-            let books = Array.from(booksContainer.getElementsByClassName("col-md-4"));
-            let sortValue = document.getElementById("sortFilter").value;
-
-            books.sort((a, b) => {
-                let titleA = a.querySelector("h5").innerText.toLowerCase();
-                let titleB = b.querySelector("h5").innerText.toLowerCase();
-
-                if (sortValue === "asc") {
-                    return titleA.localeCompare(titleB);
-                } else {
-                    return titleB.localeCompare(titleA);
-                }
-            });
-
-            books.forEach(book => booksContainer.appendChild(book));
-        }
-    </script>
 </head>
 <body>
 
@@ -243,14 +144,6 @@
                 Bộ lọc
             </button>
             <ul class="dropdown-menu" aria-labelledby="filtersDropdown">
-                <!-- Lọc tác giả -->
-                <li>
-                    <select id="authorFilter" class="form-select">
-                        <option value="all">Tất cả tác giả</option>
-                        <!-- Lặp qua danh sách tác giả -->
-                        <option th:each="author : ${authors}" th:value="${author}" th:text="${author}"></option>
-                    </select>
-                </li>
                 <!-- Lọc sắp xếp -->
                 <li>
                     <select id="sortFilter" class="form-select">
@@ -297,5 +190,98 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let searchInput = document.getElementById("searchInput");
+        let searchSuggestions = document.getElementById("searchSuggestions");
+
+        // Xử lý khi nhập vào ô tìm kiếm
+        searchInput.addEventListener("keyup", function (event) {
+            let input = searchInput.value.toLowerCase();
+            let books = document.getElementsByClassName("book-card");
+            searchSuggestions.innerHTML = "";
+
+            if (input === "") {
+                searchSuggestions.classList.remove("show");
+                return;
+            }
+
+            let suggestions = [];
+            for (let book of books) {
+                let title = book.querySelector("h5").innerText.toLowerCase();
+                if (title.includes(input)) {
+                    let suggestionItem = document.createElement("li");
+                    suggestionItem.classList.add("list-group-item", "list-group-item-action");
+                    suggestionItem.innerText = book.querySelector("h5").innerText;
+                    suggestionItem.onclick = function () {
+                        searchInput.value = suggestionItem.innerText;
+                        searchSuggestions.classList.remove("show");
+                        searchBooks();
+                    };
+                    suggestions.push(suggestionItem);
+                }
+            }
+
+            if (suggestions.length > 0) {
+                suggestions.forEach(item => searchSuggestions.appendChild(item));
+                searchSuggestions.classList.add("show");
+            } else {
+                searchSuggestions.classList.remove("show");
+            }
+
+            // Nhấn Enter để tìm kiếm
+            if (event.key === "Enter") {
+                searchBooks();
+                searchSuggestions.classList.remove("show");
+            }
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.remove("show");
+            }
+        });
+
+        // Xử lý sắp xếp sách
+        let sortFilter = document.getElementById("sortFilter");
+        sortFilter.addEventListener("change", function () {
+            sortBooks();
+        });
+    });
+
+    // Tìm kiếm sách
+    function searchBooks() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let author = document.getElementById("authorFilter") ? document.getElementById("authorFilter").value : 'all';
+        let books = document.getElementsByClassName("book-card");
+
+        for (let book of books) {
+            let title = book.querySelector("h5").innerText.toLowerCase();
+            let bookAuthor = book.querySelector(".book-author").innerText.toLowerCase();
+            let isVisible = title.includes(input) && (author === "all" || bookAuthor.includes(author));
+            book.parentElement.style.display = isVisible ? "block" : "none";
+        }
+    }
+
+    // Sắp xếp sách theo tiêu đề
+    function sortBooks() {
+        let booksContainer = document.getElementById("bookList");
+        let books = Array.from(booksContainer.getElementsByClassName("col-md-4"));
+        let sortValue = document.getElementById("sortFilter").value;
+
+        books.sort((a, b) => {
+            let titleA = a.querySelector("h5").innerText.toLowerCase();
+            let titleB = b.querySelector("h5").innerText.toLowerCase();
+
+            if (sortValue === "asc") {
+                return titleA.localeCompare(titleB);
+            } else {
+                return titleB.localeCompare(titleA);
+            }
+        });
+
+        books.forEach(book => booksContainer.appendChild(book));
+    }
+</script>
 </body>
 </html>
